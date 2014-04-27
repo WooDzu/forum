@@ -51,6 +51,20 @@ class Bootstrap extends EngineBootstrap
         parent::__construct($di, $em);
 
         /**
+         * Alias classes
+         */
+        foreach (glob(__DIR__ .'/Controller/*Controller.php') as $path) {
+            $controller = str_replace(__DIR__ .'/Controller/', '', $path);
+            $className = substr($controller, 0, -4);
+            require_once 'Controller/'. $controller;
+
+            class_alias('Phosphorum\Controllers\\'. $className,
+                        'Phosphorum\Controller\\'. $className, false);
+
+        }
+
+
+        /**
          * Attach this bootstrap for all application initialization events.
          */
         $em->attach('init', $this);
