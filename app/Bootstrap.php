@@ -129,29 +129,25 @@ class Bootstrap extends EngineBootstrap
         $em = $this->getEventsManager();
         $config = $this->getConfig();
 
-        /*************************************************/
-        //  Initialize dispatcher.
-        /*************************************************/
+        /**
+         * Initialize dispatcher.
+         **/
         $em->attach("dispatch:beforeException", new DispatchErrorHandler());
-        if (!$config->application->debug) {
-            $em->attach('dispatch:beforeExecuteRoute', new CacheAnnotation());
-        }
 
-        // Create dispatcher.
         $dispatcher = new Dispatcher();
         $dispatcher->setEventsManager($em);
         $di->set('dispatcher', $dispatcher);
 
         /**
-         * Forum constants
+         * Create forum Config
          */
         define('APP_PATH', $this->_moduleDir);
 
-
-        // Merge engine configs into forum config
         $config = $this->_mergeConfigs($di, $config);
 
-        // Register namespaces
+        /**
+         * Register namespaces
+         */
         $di->get('loader')->registerNamespaces(
             array(
                 'Phosphorum\Models'      => $config->application->modelsDir,
@@ -163,8 +159,10 @@ class Bootstrap extends EngineBootstrap
             true
         );
 
+        /**
+         * Initialize View
+         */
         $this->_initView($di, $em, $config);
-
     }
 
     /**
