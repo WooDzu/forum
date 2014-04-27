@@ -1,0 +1,28 @@
+{
+    "type": "module",
+    "name": "phosphorum",
+    "title": "Phosphorum",
+    "description": "Phosphorum 2 Forum module.",
+    "version": "2.0.0",
+    "author": "Phalcon Framework Team",
+    "website": "https:\/\/github.com\/phalcon\/forum",
+    "source": "app",
+    "dependencies": [
+        {
+            "name": "core",
+            "type": "module",
+            "version": "0.4.0"
+        },
+        {
+            "name": "user",
+            "type": "module",
+            "version": "0.4.0"
+        }
+    ],
+    "events": [
+
+    ],
+    "widgets": [
+
+    ]
+}
