@@ -17,6 +17,7 @@
 namespace Phosphorum;
 
 use Engine\Installer as EngineInstaller;
+use Engine\Package\Manager as PackageManager;
 
 /**
  * Phosphorum Installer.
@@ -37,7 +38,7 @@ class Installer extends EngineInstaller
         CURRENT_VERSION = '0.4.0';
 
     /**
-     * Used to install specific database entities or other specific action.
+     * Install database entities and files
      *
      * @return void
      */
@@ -49,7 +50,8 @@ class Installer extends EngineInstaller
             copy($path, str_replace(__DIR__ . DS .'controllers', __DIR__ . DS .'Controller', $path));
         }
 
-        // $this->runSqlFile(__DIR__ . '/Assets/sql/installation.sql');
+        $tempDirectory = $this->_getTempDirectory();
+        $this->runSqlFile($tempDirectory .'/schemas/forum.sql');
     }
 
 
@@ -74,6 +76,28 @@ class Installer extends EngineInstaller
     public function update($currentVersion)
     {
         return $currentVersion = null;
+    }
+
+    /**
+     * Get directory where the package has been extracted
+     *
+     * todo: at the moment there is no way to retrieve tempDirectory at this point
+     *
+     * @return string
+     */
+    private function _getTempDirectory()
+    {
+        $packageManager = new PackageManager();
+
+        $tempDir = rtrim($packageManager->getTempDirectory(false), '/\\');
+        $manifestLocation = $tempDir . DS . PackageManager::PACKAGE_MANIFEST_NAME;
+
+        // check manifest existence in expected location or its subdir
+        if (!file_exists($manifestLocation) && count($tempDirFolders = glob($tempDir . '/*', GLOB_ONLYDIR)) == 1) {
+            $tempDir = realpath($tempDirFolders[0]);
+        }
+
+        return $tempDir;
     }
 
 }
