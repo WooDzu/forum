@@ -45,7 +45,8 @@ class Installer extends EngineInstaller
     public function install()
     {
         // Nasty method to copy over controllers to Controller dir
-        mkdir(__DIR__ .'/Controller');
+        is_dir(__DIR__ .'/Controller') or mkdir(__DIR__ .'/Controller');
+
         foreach (glob(__DIR__ . DS .'controllers'. DS .'*Controller.php') as $path) {
             copy($path, str_replace(__DIR__ . DS .'controllers', __DIR__ . DS .'Controller', $path));
         }
