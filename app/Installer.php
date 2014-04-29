@@ -16,6 +16,7 @@
 
 namespace Phosphorum;
 
+use Engine\Exception;
 use Engine\Installer as EngineInstaller;
 use Engine\Package\Manager as PackageManager;
 
@@ -37,6 +38,12 @@ class Installer extends EngineInstaller
          */
         CURRENT_VERSION = '0.4.0';
 
+    const
+        /**
+         * Db tables prefix
+         */
+        DB_PREFIX = 'phosphorum_';
+
     /**
      * Install database entities and files
      *
@@ -44,15 +51,28 @@ class Installer extends EngineInstaller
      */
     public function install()
     {
-        // Nasty method to copy over controllers to Controller dir
+        /**
+         * nasty method to copy over controllers to Controller dir
+         */
         is_dir(__DIR__ .'/Controller') or mkdir(__DIR__ .'/Controller');
 
         foreach (glob(__DIR__ . DS .'controllers'. DS .'*Controller.php') as $path) {
             copy($path, str_replace(__DIR__ . DS .'controllers', __DIR__ . DS .'Controller', $path));
         }
 
+        /**
+         * database tables need renaming since they conflict with PhalconEye
+         */
         $tempDirectory = $this->_getTempDirectory();
-        $this->runSqlFile($tempDirectory .'/schemas/forum.sql');
+        $schema = file_get_contents($tempDirectory .'/schemas/forum.sql');
+
+        $newSchema = str_replace('DROP TABLE IF EXISTS `', 'DROP TABLE IF EXISTS `'. self::DB_PREFIX, $schema);
+        $newSchema = str_replace('CREATE TABLE `', 'CREATE TABLE `phosphorum_'. self::DB_PREFIX, $newSchema);
+
+        $db = $this->getDI()->get('db');
+        $db->begin();
+        $db->query($newSchema);
+        $db->commit();
     }
 
 
@@ -100,5 +120,4 @@ class Installer extends EngineInstaller
 
         return $tempDir;
     }
-
 }
