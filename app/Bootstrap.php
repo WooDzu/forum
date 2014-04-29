@@ -19,15 +19,17 @@ namespace Phosphorum;
 
 use Engine\Bootstrap as EngineBootstrap;
 use Engine\Dispatcher;
-use Engine\Plugin\CacheAnnotation;
 use Engine\Plugin\DispatchErrorHandler;
 use Engine\View;
 use Phalcon\Config;
 use Phalcon\DiInterface;
 use Phalcon\Events\Event;
 use Phalcon\Events\Manager;
+use Phalcon\Mvc\ModelInterface;
+use Phalcon\Mvc\Model\Manager as ModelsManager;
+use Phalcon\Mvc\Model\Metadata\Strategy\Introspection;
+use Phalcon\Mvc\Model\Metadata\Strategy\Annotations;
 use Phalcon\Mvc\Router;
-
 
 /**
  * Phosphorum Bootstrap.
@@ -43,9 +45,16 @@ class Bootstrap extends EngineBootstrap
 {
     const
         /**
-         * URL prefix.
+         * URL prefix
          */
         URL_ROUTE = '/forum';
+
+    const
+        /**
+         * Db tables prefix
+         */
+        DB_PREFIX = 'phosphorum_';
+
 
     /**
      * Current module name.
@@ -61,6 +70,19 @@ class Bootstrap extends EngineBootstrap
      */
     protected $_moduleDir = '';
 
+    /**
+     * Phosphorum Metadata Strategy
+     *
+     * @var Introspection
+     */
+    private $_strategyForum = null;
+
+    /**
+     * PhalconEye Metadata Strategy
+     *
+     * @var Annotations
+     */
+    private $_strategyEye = null;
 
     /**
      * Bootstrap construction.
@@ -159,10 +181,25 @@ class Bootstrap extends EngineBootstrap
             true
         );
 
+
         /**
          * Initialize View
          */
         $this->_initView($di, $em, $config);
+
+
+        /**
+         * Initialize Models Manager
+         */
+        $em->attach('modelsManager', $this);
+
+        /**
+         * Initialize MetaData adapter
+         */
+        $modelsMetadata = $di->get('modelsMetadata');
+        $this->_strategyEye = $modelsMetadata->getStrategy();
+        $this->_strategyForum = new Introspection();
+        $modelsMetadata->setStrategy($this);
     }
 
     /**
@@ -211,4 +248,30 @@ class Bootstrap extends EngineBootstrap
         );
     }
 
+
+    /******************************************************
+     * @todo: this is sooo cool that's its possible - but rather bad strategy further
+     ******************************************************/
+
+    public function afterInitialize(Event $event, ModelsManager $manager, ModelInterface $model) {
+        if (strpos($class = get_class($model), 'Phosphorum\Models\\') === 0) {
+            $manager->setModelSource($model, self::DB_PREFIX . $model->getSource());
+        }
+    }
+
+    public function getMetaData(ModelInterface $model, DiInterface $di) {
+        if (strpos($class = get_class($model), 'Phosphorum\Models\\') === 0) {
+            return $this->_strategyForum->getMetaData($model, $di);
+        } else {
+            return $this->_strategyEye->getMetaData($model, $di);
+        }
+    }
+
+    public function getColumnMaps(ModelInterface $model, DiInterface $di) {
+        if (strpos($class = get_class($model), 'Phosphorum\Models\\') === 0) {
+            return $this->_strategyForum->getColumnMaps($model, $di);
+        } else {
+            return $this->_strategyEye->getColumnMaps($model, $di);
+        }
+    }
 }
