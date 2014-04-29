@@ -67,7 +67,7 @@ class Installer extends EngineInstaller
         $schema = file_get_contents($tempDirectory .'/schemas/forum.sql');
 
         $newSchema = str_replace('DROP TABLE IF EXISTS `', 'DROP TABLE IF EXISTS `'. self::DB_PREFIX, $schema);
-        $newSchema = str_replace('CREATE TABLE `', 'CREATE TABLE `phosphorum_'. self::DB_PREFIX, $newSchema);
+        $newSchema = str_replace('CREATE TABLE `', 'CREATE TABLE `'. self::DB_PREFIX, $newSchema);
 
         $db = $this->getDI()->get('db');
         $db->begin();
