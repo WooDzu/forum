@@ -30,6 +30,7 @@ use Phalcon\Mvc\Model\Manager as ModelsManager;
 use Phalcon\Mvc\Model\Metadata\Strategy\Introspection;
 use Phalcon\Mvc\Model\Metadata\Strategy\Annotations;
 use Phalcon\Mvc\Router;
+use Phalcon\Mvc\Url as UrlResolver;
 
 /**
  * Phosphorum Bootstrap.
@@ -187,6 +188,11 @@ class Bootstrap extends EngineBootstrap
          */
         $this->_initView($di, $em, $config);
 
+        /**
+         * Initialize View
+         */
+        $this->_initUrl($di, $em, $config);
+
 
         /**
          * Initialize Models Manager
@@ -223,6 +229,11 @@ class Bootstrap extends EngineBootstrap
         $forumConfig->application->pluginsDir     = $this->_moduleDir . DS .'plugins'. DS;
         $forumConfig->application->libraryDir     = $this->_moduleDir . DS .'library'. DS;
 
+        $forumConfig->application->production->baseUri        = self::URL_ROUTE .'/';
+        $forumConfig->application->production->staticBaseUri  = self::URL_ROUTE .'/';
+        $forumConfig->application->development->baseUri       = self::URL_ROUTE .'/';
+        $forumConfig->application->development->staticBaseUri = self::URL_ROUTE .'/';
+
         $di->set('config', $forumConfig);
 
         return $forumConfig;
@@ -240,11 +251,104 @@ class Bootstrap extends EngineBootstrap
      */
     private function _initView(DiInterface $di, Manager $em, Config $config)
     {
-        $di->set(
-            'view',
-            function () use ($di, $em, $config) {
-                return View::factory($di, $config, $this->_moduleDir .'/views/', $em);
+        $di->set('view', function () use ($di, $em, $config) {
+
+            $view = View::factory($di, $config, $this->_moduleDir .'/views/', $em);
+            #$view->setRenderLevel(View::LEVEL_MAIN_LAYOUT);
+            $view->setRenderLevel(View::LEVEL_AFTER_TEMPLATE);
+
+            if (!$config->application->debug) {
+                // $view->setBasePath($config->application->development->baseUri);
+            } else {
+                // $view->setBasePath($config->application->production->baseUri);
             }
+
+            /**
+             * @var $event Event
+             * @var $view View
+             **/
+            $em->attach('view', function (Event $event, View $view) use ($di, $config, $em) {
+
+                if ($event->getType() != 'afterRender') {
+                    return;
+                }
+
+                // Trigger this event only once
+                $em->detachAll('view');
+
+                $buffer = $view->getContent();
+
+                // Render main template - standard way
+                /*
+                $eye = View::factory($di, $config, 'F:\SVN\PhalconEye/app/modules/Core/View/', $em);
+                $eye->setMainView('main');
+                //$view->setLayoutsDir('');
+                $eye->setRenderLevel(View::LEVEL_MAIN_LAYOUT);
+                // $eye->setContent($buffer);
+                $eye->disableLevel(array(
+                    View::LEVEL_ACTION_VIEW => true,
+                    View::LEVEL_BEFORE_TEMPLATE => true,
+                    View::LEVEL_LAYOUT => true,
+                    View::LEVEL_AFTER_TEMPLATE => true
+                ));
+                $asd = $eye->finish();
+                */
+
+                // Render main template - simple way???
+                $eye = new \Phalcon\Mvc\View\Simple();
+                $eye->setDI($di);
+                $eye->setViewsDir('F:\SVN\PhalconEye/app/modules/Core/View/');
+
+                $volt = new \Phalcon\Mvc\View\Engine\Volt($eye, $di);
+                $volt->setOptions(
+                    [
+                        "compiledPath" => $config->application->view->compiledPath,
+                        "compiledExtension" => $config->application->view->compiledExtension,
+                        'compiledSeparator' => $config->application->view->compiledSeparator,
+                        'compileAlways' => $config->application->debug && $config->application->view->compileAlways
+                    ]
+                );
+                $compiler = $volt->getCompiler();
+                $compiler->addExtension(new \Engine\View\Extension());
+
+                $eye->registerEngines([".volt" => $volt]);
+                $eye->setContent($buffer);
+
+                $eye->render('layouts/main');
+
+                $stop = 1;
+            });
+
+            return $view;
+        });
+    }
+
+
+    /**
+     * The URL component is used to generate all kind of urls in the application
+     *
+     * @param DiInterface $di
+     * @param Manager $em
+     * @param Config $config
+     *
+     * @return void
+     */
+    private function _initUrl(DiInterface $di, Manager $em, Config $config)
+    {
+        $di->set(
+            'url',
+            function () use ($config) {
+                $url = new UrlResolver();
+                if (!$config->application->debug) {
+                    $url->setBaseUri($config->application->production->baseUri);
+                    $url->setStaticBaseUri($config->application->production->staticBaseUri);
+                } else {
+                    $url->setBaseUri($config->application->development->baseUri);
+                    $url->setStaticBaseUri($config->application->development->staticBaseUri);
+                }
+                return $url;
+            },
+            true
         );
     }
 
