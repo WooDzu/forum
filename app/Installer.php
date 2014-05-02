@@ -1,17 +1,24 @@
 <?php
 /*
-	+------------------------------------------------------------------------+
-	| Phosphorum                                                             |
-	+------------------------------------------------------------------------+
-	| Copyright (c) 2013-2014 Phalcon Team and contributors                  |
-	+------------------------------------------------------------------------+
-	| This source file is subject to the New BSD License that is bundled     |
-	| with this package in the file docs/LICENSE.txt.                        |
-	|                                                                        |
-	| If you did not receive a copy of the license and are unable to         |
-	| obtain it through the world-wide-web, please send an email             |
-	| to license@phalconphp.com so we can send you a copy immediately.       |
-	+------------------------------------------------------------------------+
+    +------------------------------------------------------------------------+
+    | Phosphorum                                                             |
+    +------------------------------------------------------------------------+
+    | Copyright (c) 2013-2014 Phalcon Team and contributors                  |
+    +------------------------------------------------------------------------+
+    | This source file is subject to the New BSD License that is bundled     |
+    | with this package in the file docs/LICENSE.txt.                        |
+    |                                                                        |
+    | If you did not receive a copy of the license and are unable to         |
+    | obtain it through the world-wide-web, please send an email             |
+    | to license@phalconphp.com so we can send you a copy immediately.       |
+    +------------------------------------------------------------------------+
+    | @category  PhalconEye                                                  |
+    | @package   Phosphorum                                                  |
+    | @author    Piotr Gasiorowski <p.gasiorowski@vipserv.org>               |
+    | @copyright 2013-2014 Phalcon Team                                      |
+    | @license   New BSD License                                             |
+    | @link      https://github.com/phalcon/forum                            |
+    +------------------------------------------------------------------------+
 */
 
 namespace Phosphorum;
@@ -22,13 +29,6 @@ use Engine\Package\Manager as PackageManager;
 
 /**
  * Phosphorum Installer.
- *
- * @category  PhalconEye
- * @package   Phosphorum
- * @author    Piotr Gasiorowski <p.gasiorowski@vipserv.org>
- * @copyright 2013-2014 Phalcon Team
- * @license   New BSD License
- * @link      https://github.com/phalcon/forum
  */
 class Installer extends EngineInstaller
 {
@@ -51,15 +51,6 @@ class Installer extends EngineInstaller
      */
     public function install()
     {
-        /**
-         * nasty method to copy over controllers to Controller dir
-         */
-        is_dir(__DIR__ .'/Controller') or mkdir(__DIR__ .'/Controller');
-
-        foreach (glob(__DIR__ . DS .'controllers'. DS .'*Controller.php') as $path) {
-            copy($path, str_replace(__DIR__ . DS .'controllers', __DIR__ . DS .'Controller', $path));
-        }
-
         /**
          * database tables need renaming since they conflict with PhalconEye
          */
