@@ -103,10 +103,14 @@ class Bootstrap extends EngineBootstrap
     public function registerServices()
     {
         $di = $this->getDI();
-        $config = $this->getConfig();
 
-        // todo: not sure how to pass this to view from here
+        // todo: Not sure how to pass forum's contents to CMS's view from here
         $di->set('forumContent', function() use($di) {
+
+            // todo: Decouple composer loaded libraries... maybe a library packages?
+            include $this->_moduleDir .'/vendor/autoload.php';
+
+            // In fact it created pretty nice lazy initialization
             return $this->_initForum($di);
         });
 
@@ -129,9 +133,14 @@ class Bootstrap extends EngineBootstrap
         $config = include APP_PATH . "/app/config/config.example.php";
 
         $config->application->production->baseUri        = self::URL_ROUTE .'/';
-        $config->application->production->staticBaseUri  = self::URL_ROUTE .'/';
+        $config->application->production->staticBaseUri  = '/';
         $config->application->development->baseUri       = self::URL_ROUTE .'/';
-        $config->application->development->staticBaseUri = self::URL_ROUTE .'/';
+        $config->application->development->staticBaseUri = '/';
+
+        $githubOAuthURL = self::URL_ROUTE .'/login/oauth/access_token/';
+        $config->github->clientId     = '2b052673bcb7eff47be0';
+        $config->github->clientSecret = 'a4c561782f97a1ca1fb498c39494e2afd201cec7';
+        $config->github->redirectUri  = $_SERVER['REQUEST_SCHEME'] .'://'. $_SERVER['SERVER_NAME'] . $githubOAuthURL;
 
         /**
          * Include the loader
@@ -149,9 +158,11 @@ class Bootstrap extends EngineBootstrap
         $view = $di->get('view');
         $router = $di->get('router');
 
+
         /**
          * Share db connection and session
          */
+        $di->get('tag')->setDI($di);
         $di->set('session', $eyeDi->get('session'));
         $di->set('db', $eyeDi->get('db'));
         $di->set('router', function () use ($router) {
@@ -169,7 +180,10 @@ class Bootstrap extends EngineBootstrap
             $modelsManager->setDI($di);
             $modelsManager->setEventsManager($em);
 
-            $em->attach('modelsManager', function (Event $event, ModelsManager $manager, ModelInterface $model) {
+            $em->attach('modelsManager:afterInitialize', function (Event $event, ModelsManager $manager, ModelInterface $model) {
+                $manager->setModelSource($model, self::DB_PREFIX . $model->getSource());
+            });
+            $em->attach('model:afterInitialize', function (Event $event, ModelsManager $manager, ModelInterface $model) {
                 $manager->setModelSource($model, self::DB_PREFIX . $model->getSource());
             });
 
