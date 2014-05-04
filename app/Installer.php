@@ -64,6 +64,9 @@ class Installer extends EngineInstaller
         $db->begin();
         $db->query($newSchema);
         $db->commit();
+
+        // todo: copy Controller, View
+        // todo: Create assets
     }
 
 
