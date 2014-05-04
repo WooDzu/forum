@@ -260,10 +260,10 @@ class Bootstrap extends EngineBootstrap
     {
         $loader->registerNamespaces(
             array(
-                'Guzzle' => $this->_librariesDir .'/guzzle/guzzle/src/Guzzle',
-                'Ciconia' => $this->_librariesDir .'/ciconia/Ciconia',
-                'Symfony\Component\EventDispatcher' => $this->_librariesDir .'/symfony/event-dispatcher/Symfony/Component/EventDispatcher',
-                'Symfony\Component\OptionsResolver' => $this->_librariesDir .'/symfony/options-resolver/Symfony/Component/OptionsResolver',
+                'Guzzle' => $this->_librariesDir .'/Guzzle/Guzzle',
+                'Ciconia' => $this->_librariesDir .'/Ciconia/Ciconia',
+                'Symfony\Component\EventDispatcher' => $this->_librariesDir .'/Symfony-eventdispather',
+                'Symfony\Component\OptionsResolver' => $this->_librariesDir .'/Symfony-optionsresolver',
             ),
             true
         );
