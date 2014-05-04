@@ -26,6 +26,7 @@ namespace Phosphorum;
 use Engine\Exception;
 use Engine\Installer as EngineInstaller;
 use Engine\Package\Manager as PackageManager;
+use Engine\Package\Utilities;
 
 /**
  * Phosphorum Installer.
@@ -51,12 +52,36 @@ class Installer extends EngineInstaller
      */
     public function install()
     {
+        $tempDirectory = $this->_getTempDirectory();
+        $tempAssetsDir = $tempDirectory . DS . 'public';
+        $targetDirectory = __DIR__ . DS .'app';
+        $targetAssetsDir = __DIR__ . DS .'Assets';
+
+        Utilities::fsCheckLocation($targetDirectory);
+
+        /**
+         * move installed folder
+         */
+        foreach (glob(__DIR__ . DS .'*', GLOB_ONLYDIR) as $folder) {
+            if ($folder != $targetDirectory) {
+                rename($folder, $targetDirectory . DS . basename($folder));
+            }
+        }
+
+        /**
+         * copy cms specific scripts and assets
+         */
+        Utilities::fsCopyRecursive($tempDirectory . DS . 'eye', __DIR__);
+        Utilities::fsCheckLocation($targetAssetsDir . DS . 'css');
+        Utilities::fsCheckLocation($targetAssetsDir . DS . 'js');
+        Utilities::fsCopyRecursive($tempAssetsDir . DS . 'css', $targetAssetsDir . DS . 'css');
+        Utilities::fsCopyRecursive($tempAssetsDir . DS . 'js', $targetAssetsDir . DS . 'js');
+
+
         /**
          * database tables need renaming since they conflict with PhalconEye
          */
-        $tempDirectory = $this->_getTempDirectory();
         $schema = file_get_contents($tempDirectory .'/schemas/forum.sql');
-
         $newSchema = str_replace('DROP TABLE IF EXISTS `', 'DROP TABLE IF EXISTS `'. self::DB_PREFIX, $schema);
         $newSchema = str_replace('CREATE TABLE `', 'CREATE TABLE `'. self::DB_PREFIX, $newSchema);
 
@@ -65,8 +90,6 @@ class Installer extends EngineInstaller
         $db->query($newSchema);
         $db->commit();
 
-        // todo: copy Controller, View
-        // todo: Create assets
     }
 
 
@@ -112,6 +135,6 @@ class Installer extends EngineInstaller
             $tempDir = realpath($tempDirFolders[0]);
         }
 
-        return $tempDir;
+        return realpath($tempDir);
     }
 }
