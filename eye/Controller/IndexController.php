@@ -37,8 +37,9 @@ class IndexController extends AbstractController
      */
     public function indexAction()
     {
-        $this->view->forumURI = 'forum/';
-        $this->view->forumContent = $this->getDI()->get('forumContent');
+        $registry = $this->getDI()->get('registry');
+        $this->view->forumURI = $registry->forum['moduleURI'];
+        $this->view->forumContent = $registry->forum['content'];
     }
 
     /**
