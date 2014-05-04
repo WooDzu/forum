@@ -30,6 +30,7 @@ use Phalcon\DiInterface;
 use Phalcon\DI\FactoryDefault;
 use Phalcon\Events\Event;
 use Phalcon\Events\Manager;
+use Phalcon\Http\Request;
 use Phalcon\Mvc\Application;
 use Phalcon\Mvc\Model;
 use Phalcon\Mvc\Model\Manager as ModelsManager;
@@ -121,7 +122,7 @@ class Bootstrap extends EngineBootstrap
         define('APP_PATH', $this->_moduleDir);
 
          // create configuration
-        $config = $this->_createConfiguration($eyeConfig);
+        $config = $this->_createConfiguration($eyeDI, $eyeConfig);
 
         // register dependencies
         $this->_registerLibraries($config);
@@ -194,12 +195,16 @@ class Bootstrap extends EngineBootstrap
     /**
      * Creates forum configuration
      *
+     * @var DiInterface $eyeDI
      * @var Config $eyeConfig
      *
      * return array
      */
-    protected function _createConfiguration(Config $eyeConfig)
+    protected function _createConfiguration(DiInterface $eyeDI, Config $eyeConfig)
     {
+        /** @var Request $request */
+        $request = $eyeDI->get('app')->request;
+
         $config = include $this->_moduleDir . "/app/config/config.example.php";
 
         $config->application->debug = $eyeConfig->application->debug;
@@ -212,7 +217,7 @@ class Bootstrap extends EngineBootstrap
         $config->beanstalk->host      = $eyeConfig->database->host;
         $config->github->clientId     = '2b052673bcb7eff47be0';
         $config->github->clientSecret = '1a2057bf42f8ca117dcf50c0f2c3b4cfae2465ae';
-        $config->github->redirectUri  = $_SERVER['REQUEST_SCHEME'] .'://'. $_SERVER['SERVER_NAME'] .
+        $config->github->redirectUri  = $request->getScheme() .'://'. $request->getHttpHost() .
             $this->_moduleUri .'/login/oauth/access_token/';
 
         return $config;
