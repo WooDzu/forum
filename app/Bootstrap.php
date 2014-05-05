@@ -23,6 +23,7 @@
 
 namespace Phosphorum;
 
+use Core\Model\Settings;
 use Engine\Bootstrap as EngineBootstrap;
 use Phalcon\Config;
 use Phalcon\Di;
@@ -213,10 +214,9 @@ class Bootstrap extends EngineBootstrap
         $config->application->development->baseUri       = $this->_moduleUri .'/';
         $config->application->development->staticBaseUri = $eyeConfig->application->baseUrl;
 
-        // todo: add cms form
-        $config->beanstalk->host      = $eyeConfig->database->host;
-        $config->github->clientId     = '2b052673bcb7eff47be0';
-        $config->github->clientSecret = '1a2057bf42f8ca117dcf50c0f2c3b4cfae2465ae';
+        $config->beanstalk->host      = Settings::getSetting('phosphorum_beanstalk_host');
+        $config->github->clientId     = Settings::getSetting('phosphorum_github_client_id');
+        $config->github->clientSecret = Settings::getSetting('phosphorum_github_client_secret');
         $config->github->redirectUri  = $request->getScheme() .'://'. $request->getHttpHost() .
             $this->_moduleUri .'/login/oauth/access_token/';
 
