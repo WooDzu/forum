@@ -85,6 +85,9 @@ class Installer extends EngineInstaller
         $newSchema = str_replace('DROP TABLE IF EXISTS `', 'DROP TABLE IF EXISTS `'. self::DB_PREFIX, $schema);
         $newSchema = str_replace('CREATE TABLE `', 'CREATE TABLE `'. self::DB_PREFIX, $newSchema);
 
+        $newSchema = "\n INSERT INTO `phosphorum_categories` (`id`, `name`, `slug`, `number_posts`)";
+        $newSchema = "\n VALUES ('1', 'Home', 'home', NULL); ";
+
         $db = $this->getDI()->get('db');
         $db->begin();
         $db->query($newSchema);
