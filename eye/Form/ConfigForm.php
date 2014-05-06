@@ -38,11 +38,16 @@ class ConfigForm extends CoreForm
      */
     public function initialize()
     {
+        $this->setTitle('Phosphorum settings');
+
         $this->addContentFieldSet('GitHub OAuth')
             ->addText('github_client_id', 'Client ID')
             ->addText('github_client_secret', 'Client Secret');
 
         $this->addContentFieldSet('Beanstalk server')
             ->addText('beanstalk_host', 'Host', null, 'localhost');
+
+        $this->addFooterFieldSet()
+            ->addButton('save');
     }
 }
